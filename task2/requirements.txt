@@ -1,0 +1,5 @@
+rasterio
+kornia
+torch
+
+opencv-python
