@@ -1,6 +1,7 @@
 # ⛰️Text Mountain Classification
 
-<img src="https://i.pinimg.com/1200x/d5/8d/b4/d58db4c5c90aa1972dc183dac9e5b4e9.jpg" height="500" alt="mountain" style="float:left; margin-right: 20px;">
+
+
 
 ### This project focuses on training (fine-tuning) BERT model and using it for NER (Named Entity Recognition).
 ### The task is to extract mountain names from the text. (e.g. "Everest", "Fuji"")
