@@ -67,9 +67,6 @@ It works by first establishing dense, coarse-level correspondences using a Trans
 <div>
 <img src="https://zju3dv.github.io/loftr/images/loftr-arch.png"/>
 </div>
-Here is the text from the image:
-
----
 
 LoFTR has four components: 
 1. A local feature CNN extracts the coarse-level feature maps $\tilde{F}^A$ and $\tilde{F}^B$, together with the fine-level feature maps $\hat{F}^A$ and $\hat{F}^B$ from the image pair $I^A$ and $I^B$. 
