@@ -8,6 +8,12 @@ import kornia.feature as KF
 
 
 def read_raster_image(image_path):
+    """
+    Reads a raster image using rasterio and reshapes it to a standard image format.
+
+    :param image_path: Path to the raster image file.
+    :return: A tuple containing the reshaped image array and its metadata.
+    """
     with rasterio.open(image_path, "r", driver="JP2OpenJPEG") as src:
         raster_image = src.read()
         raster_meta = src.meta
@@ -17,6 +23,13 @@ def read_raster_image(image_path):
 
 
 def prepare_image(image, device, image_size):
+    """
+    Prepares an image for model inference by converting it to a tensor, resizing, and normalizing.
+    :param image: Input image.
+    :param device: Device to which the image tensor will be moved.
+    :param image_size: Desired size for the image.
+    :return: Prepared image tensor.
+    """
     image = K.utils.image_to_tensor(image)
     image = image.float().unsqueeze(dim=0).to(device) / 255.0
 
@@ -25,11 +38,19 @@ def prepare_image(image, device, image_size):
     return image
 
 
-def match_loftr(image_path1, image_path2, image_size, pretrained="outdoor", confidence = 0.8):
-
-    device = K.utils.get_cuda_device_if_available()
-    image1 = prepare_image(image_path1, device, image_size=image_size)
-    image2 = prepare_image(image_path2, device, image_size=image_size)
+def match_loftr(image1, image2, image_size, confidence = 0.8, pretrained="outdoor"):
+    """
+    Matches keypoints between two images using the LoFTR model.
+    :param image1: Image 1.
+    :param image2: Image 2.
+    :param image_size: Desired size for the images.
+    :param confidence: Confidence threshold for keypoint matches.
+    :param pretrained: Pretrained weights for the LoFTR model.
+    :return: Keypoints from both images, inliers mask, and prepared image tensors.
+    """
+    device = K.utils.get_cuda_device_if_available() # use GPU if available
+    image1 = prepare_image(image1, device, image_size=image_size)
+    image2 = prepare_image(image2, device, image_size=image_size)
 
     matcher = KF.LoFTR(pretrained=pretrained)
 
@@ -43,8 +64,8 @@ def match_loftr(image_path1, image_path2, image_size, pretrained="outdoor", conf
     with torch.inference_mode():
         correspondences = matcher(input_dict)
 
-    confidence_mask = correspondences["confidence"] > confidence
-    indices = torch.nonzero(confidence_mask, as_tuple=True)
+    confidence_mask = correspondences["confidence"] > confidence # confidence thresholding, 0.8 e.g.
+    indices = torch.nonzero(confidence_mask, as_tuple=True) # get indices of matches above the threshold
 
     keypoints1 = correspondences["keypoints0"][indices].cpu().numpy()
     keypoints2 = correspondences["keypoints1"][indices].cpu().numpy()
@@ -57,7 +78,10 @@ def match_loftr(image_path1, image_path2, image_size, pretrained="outdoor", conf
     return keypoints1, keypoints2, inliers, image1, image2
 
 
-def draw_matches(image1, image2, keypoints1, keypoints2, inliers):
+def draw_matches(ax, image1, image2, keypoints1, keypoints2, inliers):
+    """
+    Draws matches between two images using Kornia's draw_LAF_matches function.
+    """
     output_figure = draw_LAF_matches(
         KF.laf_from_center_scale_ori(
             torch.from_numpy(keypoints1).view(1, -1, 2),
@@ -79,5 +103,6 @@ def draw_matches(image1, image2, keypoints1, keypoints2, inliers):
             "feature_color": (0.2, 0.5, 1),
             "vertical": False,
         },
+        ax=ax
     )
     return output_figure
