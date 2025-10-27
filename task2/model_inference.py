@@ -107,7 +107,7 @@ if __name__ == "__main__":
         images[0], images[1], image_size, confidence, pretrained_model)
 
     num_keypoints = len(inliers)
-    num_inliers = sum(inliers)[0]
+    num_inliers = sum(inliers)
     ratio = num_inliers / float(num_keypoints)
 
     print(

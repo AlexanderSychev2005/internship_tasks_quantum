@@ -70,10 +70,15 @@ def match_loftr(image1, image2, image_size, confidence = 0.8, pretrained="outdoo
     keypoints1 = correspondences["keypoints0"][indices].cpu().numpy()
     keypoints2 = correspondences["keypoints1"][indices].cpu().numpy()
 
-    Fm, inliers = cv2.findFundamentalMat(
-        keypoints1, keypoints2, cv2.USAC_MAGSAC, 0.5, 0.999, 100000
-    )
-    inliers = inliers > 0
+    # Fm, inliers = cv2.findFundamentalMat(
+    #     keypoints1, keypoints2, cv2.USAC_MAGSAC, 0.5, 0.999, 100000
+    # )
+    #
+    # inliers = inliers.ravel() > 0
+    H, ransac_mask = cv2.findHomography(keypoints1, keypoints2, cv2.RANSAC, 20)
+
+    ransac_mask_list = ransac_mask.ravel().tolist()
+    inliers = ransac_mask.ravel() > 0
 
     return keypoints1, keypoints2, inliers, image1, image2
 
