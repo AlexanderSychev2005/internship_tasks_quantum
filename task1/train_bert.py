@@ -5,14 +5,46 @@ from transformers import (
     BertForTokenClassification,
     Trainer,
     TrainingArguments,
+    DataCollatorForTokenClassification,
 )
+from seqeval.metrics import precision_score, recall_score, f1_score
 from datasets import Dataset
 import argparse
 
 labels = ["O", "B-MOUNTAIN", "I-MOUNTAIN"]
 
 labels_map = {label: i for i, label in enumerate(labels)}  # Mapping labels to integers
+id2label = {i: label for i, label in enumerate(labels)}
 print(labels_map)
+
+
+def compute_metrics(pred):
+    labels = pred.label_ids
+    preds = pred.predictions.argmax(-1)
+
+
+    true_labels = []
+    true_preds = []
+    for i in range(len(labels)):
+        labels_list = labels[i]
+        preds_list = preds[i]
+
+        temp_true_labels = []
+        temp_true_preds = []
+
+        for j in range(len(labels_list)):
+            if labels_list[j] != -100:  # Ignore predictions on padding tokens
+                temp_true_labels.append(id2label[labels_list[j]])
+                temp_true_preds.append(id2label[preds_list[j]])
+
+        true_labels.append(temp_true_labels)
+        true_preds.append(temp_true_preds)
+
+    precision = precision_score(true_labels, true_preds)
+    recall = recall_score(true_labels, true_preds)
+    f1 = f1_score(true_labels, true_preds)
+
+    return {"precision": precision, "recall": recall, "f1": f1}
 
 
 def encode_data_bio(tokenizer, texts, entities):
@@ -29,7 +61,7 @@ def encode_data_bio(tokenizer, texts, entities):
     :return: Encoded texts and labels in BIO format, which is appropriate for token classification model
     """
     encodings = tokenizer(
-        texts, truncation=True, padding=True, return_offsets_mapping=True
+        texts, truncation=True, return_offsets_mapping=True
     )
     all_labels = []
 
@@ -114,7 +146,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Loading dataset
-    dataset = json.load(open("dataset/dataset.json", "r"))
+    dataset = json.load(open(args.dataset_path, "r"))
 
     texts = [item["text"] for item in dataset]
     entities = [item["spans"] for item in dataset]
@@ -162,7 +194,8 @@ if __name__ == "__main__":
         args=training_args,
         train_dataset=train_dataset,
         eval_dataset=val_dataset,
-        processing_class=tokenizer,
+        data_collator= DataCollatorForTokenClassification(tokenizer),
+        compute_metrics=compute_metrics,
     )
 
     trainer.train()
