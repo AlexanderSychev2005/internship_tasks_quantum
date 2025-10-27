@@ -119,7 +119,9 @@ if __name__ == "__main__":
     ax.set(xticks=[], yticks=[])
     ax.set_title(f"LoFTR matches with confidence > {confidence:.2f}, Inliers ratio: {ratio:.2f}")
     output_figure = draw_matches(ax, image1, image2, keypoints1, keypoints2, inliers)
-    plt.show()
 
     plt.savefig("result.png")
+    plt.show()
+
+
 
