@@ -7,6 +7,8 @@
 
 The NER model is trained on synthetic data.
 
+<br style="clear:both;">
+
 ### Installation requirements:
 1. Create and activate a virtual environment (optional but recommended):
     ```bash
@@ -70,6 +72,6 @@ Entity: MOUNTAIN, Score: 0.9988, Word: Fuji
 Entity: MOUNTAIN, Score: 0.9974, Word: Everest
 Extracted mountains: ['Fuji', 'Everest']
 ```
-<br style="clear:both;">
+
 
 
